@@ -83,6 +83,9 @@ Keep it sharp. No fluff. No filler."""
         return {"error": str(e)}
 
 # UI route
+import os
+
 @app.get("/ui")
 def ui():
-    return FileResponse("index.html")
+    file_path = os.path.join(os.getcwd(), "index.html")
+    return FileResponse(file_path)
