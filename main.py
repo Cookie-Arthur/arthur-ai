@@ -16,11 +16,9 @@ def home():
 
 @app.post("/chat")
 async def chat(msg: Message):
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are Arthur, an AI safety oversight system. Be direct, practical and focused on risk."},
-            {"role": "user", "content": msg.message}
-        ]
-    )
-    return {"response": response.choices[0].message.content}
+    response = client.responses.create(
+    model="gpt-4o-mini",
+    input=f"You are Arthur, an AI safety oversight system. Be direct, practical and focused on risk.\nUser: {msg.message}"
+)
+
+return {"response": response.output_text}
