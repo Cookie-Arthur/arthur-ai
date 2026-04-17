@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ARTHUR // CSE CONTROL</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #05080f;
+    color: white;
+}
+
+/* HEADER */
+header {
+    text-align: center;
+    background: black;
+    padding: 10px;
+    border-bottom: 2px solid #111;
+}
+
+header h1 {
+    font-size: 14px;
+    letter-spacing: 2px;
+}
+
+/* STATUS */
+#statusBanner {
+    text-align: center;
+    padding: 12px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.stop { background: red; }
+.warning { background: orange; color:black; }
+.safe { background: #00c853; color:black; }
+
+/* GRID */
+.panel {
+    margin: 10px;
+    padding: 10px;
+    background: #0d1117;
+    border-left: 4px solid #333;
+}
+
+.title {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+/* CHECKLIST */
+.check {
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0;
+}
+
+.good { color: #00ff88; }
+.bad { color: red; }
+
+/* INPUT */
+#inputBox {
+    display: flex;
+    padding: 10px;
+    background: black;
+}
+
+input {
+    flex: 1;
+    padding: 12px;
+    background: #111;
+    color: white;
+    border: none;
+}
+
+button {
+    padding: 12px;
+    background: #00c853;
+    border: none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>ARTHUR // CONFINED SPACE ENTRY CONTROL</h1>
+</header>
+
+<div id="statusBanner">AWAITING INPUT</div>
+
+<div id="output"></div>
+
+<div id="inputBox">
+<input id="input" placeholder="Describe job..." />
+<button onclick="send()">EXECUTE</button>
+</div>
+
+<script>
+async function send() {
+    const input = document.getElementById("input");
+    const text = input.value;
+
+    const res = await fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message: text})
+    });
+
+    const data = await res.json();
+    render(data.response);
+}
+
+function render(text) {
+
+    const banner = document.getElementById("statusBanner");
+    const output = document.getElementById("output");
+
+    let status = "WARNING";
+    if (text.includes("STOP")) status = "STOP";
+    if (text.includes("SAFE")) status = "SAFE";
+
+    banner.innerText = status;
+    banner.className = status.toLowerCase();
+
+    // FAKE PARSED DATA (prototype)
+    output.innerHTML = `
+    
+    <div class="panel">
+        <div class="title">3W — WHAT CAN KILL YOU</div>
+        ☠️ Oxygen deficiency<br>
+        ☠️ Toxic gas
+    </div>
+
+    <div class="panel">
+        <div class="title">WHAT'S WRONG</div>
+        ⚠️ Rescue plan not confirmed
+    </div>
+
+    <div class="panel">
+        <div class="title">CONTROLS</div>
+        ✔ Gas test<br>
+        ✔ Monitoring<br>
+        ✔ Standby
+    </div>
+
+    <div class="panel">
+        <div class="title">PERMIT CHECK</div>
+
+        <div class="check">Gas Test <span class="good">✔</span></div>
+        <div class="check">Monitoring <span class="good">✔</span></div>
+        <div class="check">Standby <span class="good">✔</span></div>
+        <div class="check">Rescue Plan <span class="bad">✖</span></div>
+        <div class="check">Permit <span class="bad">✖</span></div>
+
+    </div>
+
+    <div class="panel">
+        <div class="title">PERMIT DETAILS</div>
+        People in space: 2<br>
+        Standby: 1<br>
+        Monitoring: Active<br>
+        Rescue: Missing
+    </div>
+    `;
+}
+</script>
+
+</body>
+</html>
