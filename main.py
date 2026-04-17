@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.responses import FileResponse
 import os
 import requests
 
@@ -10,10 +11,12 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 class Message(BaseModel):
     message: str
 
+# Health check
 @app.get("/")
 def home():
     return {"message": "Arthur is alive"}
 
+# Chat endpoint
 @app.post("/chat")
 async def chat(msg: Message):
     try:
@@ -26,8 +29,14 @@ async def chat(msg: Message):
             json={
                 "model": "gpt-4o-mini",
                 "messages": [
-                    {"role": "system", "content": "You are Arthur, an AI safety oversight system. Be direct, practical and focused on risk."},
-                    {"role": "user", "content": msg.message}
+                    {
+                        "role": "system",
+                        "content": "You are Arthur, an AI safety oversight system. Be direct, practical, and focused on risk."
+                    },
+                    {
+                        "role": "user",
+                        "content": msg.message
+                    }
                 ]
             },
             timeout=30
@@ -41,3 +50,8 @@ async def chat(msg: Message):
 
     except Exception as e:
         return {"error": str(e)}
+
+# UI route
+@app.get("/ui")
+def ui():
+    return FileResponse("index.html")
