@@ -119,51 +119,58 @@ function render(text) {
     const banner = document.getElementById("statusBanner");
     const output = document.getElementById("output");
 
-    let status = "WARNING";
-    if (text.includes("STOP")) status = "STOP";
-    if (text.includes("SAFE")) status = "SAFE";
+    let data;
 
-    banner.innerText = status;
-    banner.className = status.toLowerCase();
+    try {
+        data = JSON.parse(text);
+    } catch {
+        output.innerHTML = "ERROR PARSING RESPONSE";
+        return;
+    }
 
-    // FAKE PARSED DATA (prototype)
+    banner.innerText = data.status;
+    banner.className = data.status.toLowerCase();
+
+    function list(arr) {
+        return arr.map(i => `• ${i}`).join("<br>");
+    }
+
+    function check(name, val) {
+        return `<div class="check">${name} <span class="${val ? 'good' : 'bad'}">${val ? '✔' : '✖'}</span></div>`;
+    }
+
     output.innerHTML = `
     
     <div class="panel">
         <div class="title">3W — WHAT CAN KILL YOU</div>
-        ☠️ Oxygen deficiency<br>
-        ☠️ Toxic gas
+        ${list(data.what_can_kill_you)}
     </div>
 
     <div class="panel">
         <div class="title">WHAT'S WRONG</div>
-        ⚠️ Rescue plan not confirmed
+        ${list(data.whats_wrong)}
     </div>
 
     <div class="panel">
         <div class="title">CONTROLS</div>
-        ✔ Gas test<br>
-        ✔ Monitoring<br>
-        ✔ Standby
+        ${list(data.controls)}
     </div>
 
     <div class="panel">
         <div class="title">PERMIT CHECK</div>
-
-        <div class="check">Gas Test <span class="good">✔</span></div>
-        <div class="check">Monitoring <span class="good">✔</span></div>
-        <div class="check">Standby <span class="good">✔</span></div>
-        <div class="check">Rescue Plan <span class="bad">✖</span></div>
-        <div class="check">Permit <span class="bad">✖</span></div>
-
+        ${check("Gas Test", data.checklist.gas_test)}
+        ${check("Monitoring", data.checklist.monitoring)}
+        ${check("Standby", data.checklist.standby)}
+        ${check("Rescue Plan", data.checklist.rescue_plan)}
+        ${check("Permit", data.checklist.permit)}
     </div>
 
     <div class="panel">
         <div class="title">PERMIT DETAILS</div>
-        People in space: 2<br>
-        Standby: 1<br>
-        Monitoring: Active<br>
-        Rescue: Missing
+        People: ${data.details.people_in_space}<br>
+        Standby: ${data.details.standby}<br>
+        Monitoring: ${data.details.monitoring}<br>
+        Rescue: ${data.details.rescue}
     </div>
     `;
 }
