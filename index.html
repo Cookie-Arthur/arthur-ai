@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ARTHUR // SAFETY GUARDIAN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #05080f;
+    color: white;
+}
+
+/* HEADER */
+header {
+    background: black;
+    border-bottom: 2px solid #111;
+    text-align: center;
+}
+
+header img {
+    width: 100%;
+    max-height: 120px;
+    object-fit: cover;
+}
+
+header h1 {
+    margin: 5px 0;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+/* SCREENS */
+.screen {
+    display: none;
+    padding: 10px;
+}
+
+.active {
+    display: block;
+}
+
+/* STATUS */
+#statusBanner {
+    text-align: center;
+    padding: 14px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.stop { background: red; }
+.warning { background: orange; color:black; }
+.safe { background: #00c853; color:black; }
+
+/* PANELS */
+.panel {
+    margin: 10px 0;
+    padding: 10px;
+    background: #0d1117;
+    border-left: 4px solid #333;
+}
+
+.title {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+/* INPUT */
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #111;
+    color: white;
+    border: none;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    background: #00c853;
+    border: none;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* CHECK */
+.check {
+    display: flex;
+    justify-content: space-between;
+}
+
+.good { color: #00ff88; }
+.bad { color: red; }
+</style>
+</head>
+
+<body>
+
+<header>
+    <img src="guardian.jpg">
+    <h1>ARTHUR // SAFETY OVERSIGHT SYSTEM</h1>
+</header>
+
+<!-- SCREEN 1: SCOPE -->
+<div id="screen1" class="screen active">
+
+    <div class="panel">
+        <div class="title">SCOPE OF WORK</div>
+
+        <input id="jobTitle" placeholder="Job title">
+
+        <select id="workType">
+            <option>Confined Space</option>
+            <option>Working at Height</option>
+            <option>Lifting</option>
+            <option>Electrical</option>
+        </select>
+
+        <textarea id="description" placeholder="Describe the job..."></textarea>
+
+        <input id="location" placeholder="Location">
+
+        <input id="people" type="number" placeholder="Number of people">
+
+        <button onclick="analyse()">ANALYSE RISK</button>
+    </div>
+
+</div>
+
+<!-- SCREEN 2: RESULT -->
+<div id="screen2" class="screen">
+
+    <div id="statusBanner">PROCESSING</div>
+
+    <div id="output"></div>
+
+    <button onclick="back()">← BACK</button>
+
+</div>
+
+<script>
+
+function show(screen) {
+    document.getElementById("screen1").classList.remove("active");
+    document.getElementById("screen2").classList.remove("active");
+    document.getElementById(screen).classList.add("active");
+}
+
+function back() {
+    show("screen1");
+}
+
+async function analyse() {
+
+    const text = `
+    Job: ${document.getElementById("jobTitle").value}
+    Type: ${document.getElementById("workType").value}
+    Description: ${document.getElementById("description").value}
+    Location: ${document.getElementById("location").value}
+    People: ${document.getElementById("people").value}
+    `;
+
+    show("screen2");
+
+    const res = await fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message: text})
+    });
+
+    const data = await res.json();
+    render(data.response);
+}
+
+function render(text) {
+
+    const banner = document.getElementById("statusBanner");
+    const output = document.getElementById("output");
+
+    let data;
+
+    try {
+        data = JSON.parse(text);
+    } catch {
+        output.innerHTML = "ERROR PARSING RESPONSE";
+        return;
+    }
+
+    banner.innerText = data.status;
+    banner.className = data.status.toLowerCase();
+
+    function list(arr) {
+        return arr.map(i => `• ${i}`).join("<br>");
+    }
+
+    function check(name, val) {
+        return `<div class="check">${name} <span class="${val ? 'good' : 'bad'}">${val ? '✔' : '✖'}</span></div>`;
+    }
+
+    output.innerHTML = `
+    
+    <div class="panel">
+        <div class="title">3W — WHAT CAN KILL YOU</div>
+        ${list(data.what_can_kill_you)}
+    </div>
+
+    <div class="panel">
+        <div class="title">WHAT'S WRONG</div>
+        ${list(data.whats_wrong)}
+    </div>
+
+    <div class="panel">
+        <div class="title">CONTROLS</div>
+        ${list(data.controls)}
+    </div>
+
+    <div class="panel">
+        <div class="title">PERMIT CHECK</div>
+        ${check("Gas Test", data.checklist.gas_test)}
+        ${check("Monitoring", data.checklist.monitoring)}
+        ${check("Standby", data.checklist.standby)}
+        ${check("Rescue Plan", data.checklist.rescue_plan)}
+        ${check("Permit", data.checklist.permit)}
+    </div>
+
+    <div class="panel">
+        <div class="title">PERMIT DETAILS</div>
+        People: ${data.details.people_in_space}<br>
+        Standby: ${data.details.standby}<br>
+        Monitoring: ${data.details.monitoring}<br>
+        Rescue: ${data.details.rescue}
+    </div>
+    `;
+}
+</script>
+
+</body>
+</html>
