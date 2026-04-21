@@ -12,7 +12,8 @@ async function checkArthur() {
   try {
     const r = await fetch(`${OLLAMA_BASE}/api/tags`);
     return r.ok;
-  } catch {
+  } catch (err) {
+    console.error('HEALTH CHECK ERROR:', err);
     return false;
   }
 }
@@ -74,30 +75,22 @@ If something is unsafe, say so clearly and explain why.
   return data.response || 'No response from Arthur';
 }
 
-// OLD route
-app.get('/health', async (req, res) => {
+async function healthHandler(req, res) {
   const ok = await checkArthur();
   if (ok) {
     return res.json({ status: 'ok', arthur: 'online' });
   }
   return res.json({ status: 'degraded', arthur: 'offline' });
-});
+}
 
-// NEW route to match your frontend
-app.get('/api/guardian/health', async (req, res) => {
-  const ok = await checkArthur();
-  if (ok) {
-    return res.json({ status: 'ok', arthur: 'online' });
-  }
-  return res.json({ status: 'degraded', arthur: 'offline' });
-});
+app.get('/health', healthHandler);
+app.get('/api/guardian/health', healthHandler);
 
-// OLD route
-app.post('/chat', async (req, res) => {
+async function chatHandler(req, res) {
   try {
     const { message, mode } = req.body;
     const response = await askArthur(message, mode);
-    res.json({ response });
+    return res.json({ response });
   } catch (err) {
     console.error('CHAT ERROR:', err);
 
@@ -131,48 +124,10 @@ app.post('/chat', async (req, res) => {
       response: 'Arthur is online but the answer could not be processed. Stop and verify the control measures before continuing.'
     });
   }
-});
+}
 
-// NEW route to match your frontend
-app.post('/api/guardian', async (req, res) => {
-  try {
-    const { message, mode } = req.body;
-    const response = await askArthur(message, mode);
-    res.json({ response });
-  } catch (err) {
-    console.error('API GUARDIAN ERROR:', err);
-
-    if (req.body?.mode === 'workflow') {
-      return res.json({
-        response: JSON.stringify({
-          status: 'NO-GO',
-          what_can_hurt_you: [
-            'Unknown atmosphere',
-            'No confirmed rescue capability'
-          ],
-          where_is_the_risk: [
-            'Inside confined space',
-            'At the entry point',
-            'During loss of monitoring'
-          ],
-          controls: [
-            'Valid permit to work',
-            'Gas testing before entry',
-            'Continuous atmospheric monitoring',
-            'Standby man in place',
-            'Rescue plan and equipment confirmed'
-          ],
-          why: 'Critical confined space controls are not confirmed.',
-          improvement: 'Do not enter until permit, testing, monitoring, standby and rescue are fully verified.'
-        })
-      });
-    }
-
-    return res.json({
-      response: 'Arthur is online but the answer could not be processed. Stop and verify the control measures before continuing.'
-    });
-  }
-});
+app.post('/chat', chatHandler);
+app.post('/api/guardian', chatHandler);
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
