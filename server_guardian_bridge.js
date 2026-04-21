@@ -1,99 +1,136 @@
 const express = require('express');
 const path = require('path');
+const OpenAI = require('openai');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(express.static(__dirname));
 
-const OLLAMA_BASE = process.env.OLLAMA_BASE || 'http://arthur-node:11434';
-const MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:1.5b';
+const PORT = process.env.PORT || 3000;
+const MODEL = process.env.OPENAI_MODEL || 'gpt-5.4-mini';
+const ACCESS_PASSWORD = process.env.APP_PASSWORD || '';
 
-// ===== CHECK ARTHUR =====
-async function checkArthur() {
-  try {
-    const r = await fetch(`${OLLAMA_BASE}/api/tags`);
-    return r.ok;
-  } catch (err) {
-    console.error('HEALTH CHECK ERROR:', err);
-    return false;
-  }
+if (!process.env.OPENAI_API_KEY) {
+  console.error('Missing OPENAI_API_KEY environment variable.');
 }
 
-// ===== ASK ARTHUR =====
-async function askArthur(message, mode = 'ask') {
-  let systemPrompt = '';
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
-  if (mode === 'workflow') {
-    systemPrompt = `
+function requirePassword(req, res, next) {
+  if (!ACCESS_PASSWORD) return next();
+
+  const supplied =
+    req.headers['x-app-password'] ||
+    req.body?.password ||
+    req.query?.password ||
+    '';
+
+  if (supplied !== ACCESS_PASSWORD) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  next();
+}
+
+function workflowPrompt(message) {
+  return `
 You are ARTHUR – Safety Guardian AI.
 
-You must:
-- Apply UK HSE principles, IOGP Life Saving Rules, HSG65 thinking, and confined space best practice
-- Be strict: if controls are missing -> NO GO
-- Enforce LMRA 3W thinking
-- Give practical controls and clear reasons
+Role:
+- Act like a high-risk work safety controller for demo purposes.
+- Be practical, direct, and calm.
+- If critical controls are missing, say NO-GO clearly.
+- Explain why work cannot continue and what must be done before it can continue.
 
-Respond ONLY in JSON:
+Knowledge lens:
+- UK HSE principles
+- HSG65 plan, do, check, act thinking
+- IOGP Life-Saving Rules
+- Process safety / PSMS style control thinking
+- LMRA / 3W mindset:
+  1) What can hurt you?
+  2) Where is the risk?
+  3) What controls keep you safe?
 
+Rules:
+- Never bluff.
+- If the information is incomplete, say what is missing.
+- Challenge unsafe assumptions.
+- Prefer plain English over legalistic wording.
+- Do not mention that you are an AI unless asked.
+
+Return ONLY valid JSON with this exact shape:
 {
   "status": "SAFE | CAUTION | NO-GO",
-  "what_can_hurt_you": [],
-  "where_is_the_risk": [],
-  "controls": [],
+  "what_can_hurt_you": ["..."],
+  "where_is_the_risk": ["..."],
+  "controls": ["..."],
   "why": "short explanation",
-  "improvement": "what must be done to proceed"
+  "improvement": ["specific actions to proceed safely"]
 }
-`;
-  } else {
-    systemPrompt = `
+
+User task:
+${message}
+`.trim();
+}
+
+function askPrompt(message) {
+  return `
 You are ARTHUR – Safety Guardian AI.
 
-You give:
-- clear, direct safety advice
-- practical explanations
-- challenge unsafe ideas
-- safe alternatives where possible
-- plain English, like a strong toolbox talk
+Style:
+- Clear
+- Practical
+- Authoritative
+- Plain English
+- Able to stop unsafe work
 
-If something is unsafe, say so clearly and explain why.
-`;
-  }
+Behaviour:
+- Give usable advice, not waffle.
+- If something is unsafe, say so directly.
+- Explain why.
+- Suggest a safe way forward where possible.
+- If asked to explain to the workforce, keep it simple.
 
-  const ollamaRes = await fetch(`${OLLAMA_BASE}/api/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: MODEL,
-      prompt: `${systemPrompt}\n\nUser Input:\n${message}`,
-      stream: false
-    })
+User message:
+${message}
+`.trim();
+}
+
+async function runOpenAIText(input, mode = 'ask') {
+  const prompt = mode === 'workflow' ? workflowPrompt(input) : askPrompt(input);
+
+  const response = await openai.responses.create({
+    model: MODEL,
+    input: prompt
   });
 
-  if (!ollamaRes.ok) {
-    throw new Error(`Ollama returned ${ollamaRes.status}`);
-  }
-
-  const data = await ollamaRes.json();
-  return data.response || 'No response from Arthur';
+  return response.output_text || '';
 }
 
-// ===== HEALTH ROUTES =====
-async function healthHandler(req, res) {
-  const ok = await checkArthur();
-  if (ok) {
-    return res.json({ status: 'ok', arthur: 'online' });
-  }
-  return res.json({ status: 'degraded', arthur: 'offline' });
-}
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', app: 'online' });
+});
 
-app.get('/health', healthHandler);
-app.get('/api/guardian/health', healthHandler);
-
-// ===== CHAT ROUTES =====
-async function chatHandler(req, res) {
+app.get('/api/guardian/health', requirePassword, async (req, res) => {
   try {
-    const { message, mode } = req.body;
-    const response = await askArthur(message, mode);
+    if (!process.env.OPENAI_API_KEY) {
+      return res.json({ status: 'degraded', arthur: 'offline', reason: 'missing_api_key' });
+    }
+
+    return res.json({ status: 'ok', arthur: 'online', provider: 'openai', model: MODEL });
+  } catch (err) {
+    console.error('HEALTH ERROR:', err);
+    return res.json({ status: 'degraded', arthur: 'offline' });
+  }
+});
+
+app.post('/chat', requirePassword, async (req, res) => {
+  try {
+    const { message, mode } = req.body || {};
+    const response = await runOpenAIText(message || '', mode || 'ask');
     return res.json({ response });
   } catch (err) {
     console.error('CHAT ERROR:', err);
@@ -102,44 +139,52 @@ async function chatHandler(req, res) {
       return res.json({
         response: JSON.stringify({
           status: 'NO-GO',
-          what_can_hurt_you: [
-            'Unknown atmosphere',
-            'No confirmed rescue capability'
-          ],
-          where_is_the_risk: [
-            'Inside confined space',
-            'At the entry point',
-            'During loss of monitoring'
-          ],
-          controls: [
-            'Valid permit to work',
-            'Gas testing before entry',
-            'Continuous atmospheric monitoring',
-            'Standby man in place',
-            'Rescue plan and equipment confirmed'
-          ],
-          why: 'Critical confined space controls are not confirmed.',
-          improvement: 'Do not enter until permit, testing, monitoring, standby and rescue are fully verified.'
+          what_can_hurt_you: ['Assessment unavailable'],
+          where_is_the_risk: ['Risk review could not be completed'],
+          controls: ['Do not proceed', 'Verify the system', 'Confirm controls manually'],
+          why: 'Arthur could not complete a reliable assessment.',
+          improvement: ['Restore the service', 'Reassess before work starts']
         })
       });
     }
 
-    return res.json({
-      response: 'Arthur is online but the answer could not be processed. Stop and verify controls before continuing.'
+    return res.status(500).json({
+      response: 'Arthur could not complete the response. Stop and verify the job controls before continuing.'
     });
   }
-}
+});
 
-app.post('/chat', chatHandler);
-app.post('/api/guardian', chatHandler);
+app.post('/api/guardian', requirePassword, async (req, res) => {
+  try {
+    const { message, mode } = req.body || {};
+    const response = await runOpenAIText(message || '', mode || 'ask');
+    return res.json({ response });
+  } catch (err) {
+    console.error('API GUARDIAN ERROR:', err);
 
-// ===== ROOT =====
+    if (req.body?.mode === 'workflow') {
+      return res.json({
+        response: JSON.stringify({
+          status: 'NO-GO',
+          what_can_hurt_you: ['Assessment unavailable'],
+          where_is_the_risk: ['Risk review could not be completed'],
+          controls: ['Do not proceed', 'Verify the system', 'Confirm controls manually'],
+          why: 'Arthur could not complete a reliable assessment.',
+          improvement: ['Restore the service', 'Reassess before work starts']
+        })
+      });
+    }
+
+    return res.status(500).json({
+      response: 'Arthur could not complete the response. Stop and verify the job controls before continuing.'
+    });
+  }
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ===== START SERVER =====
-const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`Safety Guardian running on http://localhost:${PORT}`);
+  console.log(`Safety Guardian running on port ${PORT}`);
 });
