@@ -8,6 +8,7 @@ app.use(express.static(__dirname));
 const OLLAMA_BASE = process.env.OLLAMA_BASE || 'http://arthur-node:11434';
 const MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:1.5b';
 
+// ===== CHECK ARTHUR =====
 async function checkArthur() {
   try {
     const r = await fetch(`${OLLAMA_BASE}/api/tags`);
@@ -18,6 +19,7 @@ async function checkArthur() {
   }
 }
 
+// ===== ASK ARTHUR =====
 async function askArthur(message, mode = 'ask') {
   let systemPrompt = '';
 
@@ -75,6 +77,7 @@ If something is unsafe, say so clearly and explain why.
   return data.response || 'No response from Arthur';
 }
 
+// ===== HEALTH ROUTES =====
 async function healthHandler(req, res) {
   const ok = await checkArthur();
   if (ok) {
@@ -86,6 +89,7 @@ async function healthHandler(req, res) {
 app.get('/health', healthHandler);
 app.get('/api/guardian/health', healthHandler);
 
+// ===== CHAT ROUTES =====
 async function chatHandler(req, res) {
   try {
     const { message, mode } = req.body;
@@ -121,7 +125,7 @@ async function chatHandler(req, res) {
     }
 
     return res.json({
-      response: 'Arthur is online but the answer could not be processed. Stop and verify the control measures before continuing.'
+      response: 'Arthur is online but the answer could not be processed. Stop and verify controls before continuing.'
     });
   }
 }
@@ -129,11 +133,13 @@ async function chatHandler(req, res) {
 app.post('/chat', chatHandler);
 app.post('/api/guardian', chatHandler);
 
+// ===== ROOT =====
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const PORT = process.env.PORT || 3000;
+// ===== START SERVER =====
+const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Safety Guardian running on http://localhost:${PORT}`);
 });
