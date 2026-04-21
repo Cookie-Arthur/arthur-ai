@@ -1,43 +1,34 @@
-// server_guardian_bridge.js
-// Simple bridge between frontend demo and Arthur (Ollama on arthur-node)
-
 const express = require('express');
+const path = require('path');
+
 const app = express();
-
 app.use(express.json());
-app.use(express.static(__dirname)); // serves index.html
+app.use(express.static(__dirname));
 
-// CONFIG
-const OLLAMA_BASE = process.env.OLLAMA_BASE || "http://arthur-node:11434";
-const MODEL = process.env.OLLAMA_MODEL || "qwen2.5:1.5b";
+const OLLAMA_BASE = process.env.OLLAMA_BASE || 'http://arthur-node:11434';
+const MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:1.5b';
 
-// HEALTH CHECK
-app.get('/health', async (req, res) => {
-    try {
-        const r = await fetch(`${OLLAMA_BASE}/api/tags`);
-        if (!r.ok) throw new Error();
-        res.json({ status: "ok", arthur: "online" });
-    } catch {
-        res.json({ status: "degraded", arthur: "offline" });
-    }
-});
+async function checkArthur() {
+  try {
+    const r = await fetch(`${OLLAMA_BASE}/api/tags`);
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
 
-// MAIN CHAT ENDPOINT
-app.post('/chat', async (req, res) => {
+async function askArthur(message, mode = 'ask') {
+  let systemPrompt = '';
 
-    const { message, mode } = req.body;
-
-    // SYSTEM PROMPTS
-    let systemPrompt = "";
-
-    if (mode === "workflow") {
-        systemPrompt = `
+  if (mode === 'workflow') {
+    systemPrompt = `
 You are ARTHUR – Safety Guardian AI.
 
 You must:
-- Apply UK HSE principles, IOGP Life Saving Rules, and confined space best practice
-- Be strict: if controls are missing → NO GO
+- Apply UK HSE principles, IOGP Life Saving Rules, HSG65 thinking, and confined space best practice
+- Be strict: if controls are missing -> NO GO
 - Enforce LMRA 3W thinking
+- Give practical controls and clear reasons
 
 Respond ONLY in JSON:
 
@@ -50,76 +41,144 @@ Respond ONLY in JSON:
   "improvement": "what must be done to proceed"
 }
 `;
-    } else {
-        systemPrompt = `
+  } else {
+    systemPrompt = `
 You are ARTHUR – Safety Guardian AI.
 
 You give:
-- Clear, direct safety advice
-- Reference best practice (HSE, IOGP, PSMS principles)
-- Challenge unsafe ideas
-- Explain WHY something is unsafe
+- clear, direct safety advice
+- practical explanations
+- challenge unsafe ideas
+- safe alternatives where possible
+- plain English, like a strong toolbox talk
 
-Keep responses:
-- Practical
-- Short
-- Authoritative
+If something is unsafe, say so clearly and explain why.
 `;
-    }
+  }
 
-    try {
+  const ollamaRes = await fetch(`${OLLAMA_BASE}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: MODEL,
+      prompt: `${systemPrompt}\n\nUser Input:\n${message}`,
+      stream: false
+    })
+  });
 
-        const ollamaRes = await fetch(`${OLLAMA_BASE}/api/generate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                model: MODEL,
-                prompt: `${systemPrompt}\n\nUser Input:\n${message}`,
-                stream: false
-            })
-        });
+  if (!ollamaRes.ok) {
+    throw new Error(`Ollama returned ${ollamaRes.status}`);
+  }
 
-        const data = await ollamaRes.json();
+  const data = await ollamaRes.json();
+  return data.response || 'No response from Arthur';
+}
 
-        res.json({
-            response: data.response || "No response from Arthur"
-        });
-
-    } catch (err) {
-
-        // FAILSAFE DEMO RESPONSE
-        if (mode === "workflow") {
-            return res.json({
-                response: JSON.stringify({
-                    status: "NO-GO",
-                    what_can_hurt_you: [
-                        "Unknown atmosphere",
-                        "No confirmed rescue capability"
-                    ],
-                    where_is_the_risk: [
-                        "Inside confined space",
-                        "Entry point without monitoring"
-                    ],
-                    controls: [
-                        "Gas test required",
-                        "Continuous monitoring required",
-                        "Rescue team in place",
-                        "Valid permit to work"
-                    ],
-                    why: "Critical confined space controls not confirmed",
-                    improvement: "Do not enter until full permit, gas testing, and rescue are verified"
-                })
-            });
-        }
-
-        res.json({
-            response: "Arthur is currently offline. Follow established safety procedures and do not proceed if unsure."
-        });
-    }
+// OLD route
+app.get('/health', async (req, res) => {
+  const ok = await checkArthur();
+  if (ok) {
+    return res.json({ status: 'ok', arthur: 'online' });
+  }
+  return res.json({ status: 'degraded', arthur: 'offline' });
 });
 
-// START SERVER
-const PORT = 3000;
+// NEW route to match your frontend
+app.get('/api/guardian/health', async (req, res) => {
+  const ok = await checkArthur();
+  if (ok) {
+    return res.json({ status: 'ok', arthur: 'online' });
+  }
+  return res.json({ status: 'degraded', arthur: 'offline' });
+});
+
+// OLD route
+app.post('/chat', async (req, res) => {
+  try {
+    const { message, mode } = req.body;
+    const response = await askArthur(message, mode);
+    res.json({ response });
+  } catch (err) {
+    console.error('CHAT ERROR:', err);
+
+    if (req.body?.mode === 'workflow') {
+      return res.json({
+        response: JSON.stringify({
+          status: 'NO-GO',
+          what_can_hurt_you: [
+            'Unknown atmosphere',
+            'No confirmed rescue capability'
+          ],
+          where_is_the_risk: [
+            'Inside confined space',
+            'At the entry point',
+            'During loss of monitoring'
+          ],
+          controls: [
+            'Valid permit to work',
+            'Gas testing before entry',
+            'Continuous atmospheric monitoring',
+            'Standby man in place',
+            'Rescue plan and equipment confirmed'
+          ],
+          why: 'Critical confined space controls are not confirmed.',
+          improvement: 'Do not enter until permit, testing, monitoring, standby and rescue are fully verified.'
+        })
+      });
+    }
+
+    return res.json({
+      response: 'Arthur is online but the answer could not be processed. Stop and verify the control measures before continuing.'
+    });
+  }
+});
+
+// NEW route to match your frontend
+app.post('/api/guardian', async (req, res) => {
+  try {
+    const { message, mode } = req.body;
+    const response = await askArthur(message, mode);
+    res.json({ response });
+  } catch (err) {
+    console.error('API GUARDIAN ERROR:', err);
+
+    if (req.body?.mode === 'workflow') {
+      return res.json({
+        response: JSON.stringify({
+          status: 'NO-GO',
+          what_can_hurt_you: [
+            'Unknown atmosphere',
+            'No confirmed rescue capability'
+          ],
+          where_is_the_risk: [
+            'Inside confined space',
+            'At the entry point',
+            'During loss of monitoring'
+          ],
+          controls: [
+            'Valid permit to work',
+            'Gas testing before entry',
+            'Continuous atmospheric monitoring',
+            'Standby man in place',
+            'Rescue plan and equipment confirmed'
+          ],
+          why: 'Critical confined space controls are not confirmed.',
+          improvement: 'Do not enter until permit, testing, monitoring, standby and rescue are fully verified.'
+        })
+      });
+    }
+
+    return res.json({
+      response: 'Arthur is online but the answer could not be processed. Stop and verify the control measures before continuing.'
+    });
+  }
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Safety Guardian running on http://localhost:${PORT}`);
+  console.log(`Safety Guardian running on http://localhost:${PORT}`);
 });
