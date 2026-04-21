@@ -1,561 +1,574 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Safety Guardian // Arthur</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Safety Guardian // Arthur Safety Oversight</title>
+
   <style>
-    :root {
-      --bg: #060a12;
-      --bg-2: #0c1220;
-      --panel: rgba(12, 18, 32, 0.88);
-      --panel-2: rgba(18, 26, 42, 0.94);
-      --line: rgba(255, 214, 0, 0.18);
-      --line-strong: rgba(255, 214, 0, 0.46);
-      --text: #f2f5fb;
-      --muted: #9ca8bb;
-      --accent: #ffd400;
-      --accent-2: #ffb800;
-      --good: #18d37f;
-      --warn: #ffb020;
-      --bad: #ff4f4f;
-      --shadow: 0 18px 45px rgba(0,0,0,0.38);
-      --radius: 18px;
-      --transition: 380ms cubic-bezier(.2,.8,.2,1);
+    :root{
+      --bg:#05080f;
+      --bg2:#09101a;
+      --panel:#0d1524;
+      --panel2:#101a2b;
+      --line:rgba(255,210,0,.22);
+      --gold:#ffd200;
+      --gold2:#ffb300;
+      --text:#f4f7fb;
+      --muted:#9ca7bb;
+      --good:#00c853;
+      --warn:#ffb300;
+      --bad:#ff3b30;
+      --blue:#0b2a72;
+      --bubble:#121c2c;
+      --shadow:0 16px 40px rgba(0,0,0,.35);
+      --radius:24px;
     }
 
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,Arial,Helvetica,sans-serif;
+      color:var(--text);
       background:
-        radial-gradient(circle at top right, rgba(255, 212, 0, 0.08), transparent 24%),
-        radial-gradient(circle at top left, rgba(45, 105, 255, 0.08), transparent 18%),
+        radial-gradient(circle at top right, rgba(255,210,0,.08), transparent 24%),
+        radial-gradient(circle at top left, rgba(45,105,255,.08), transparent 18%),
         linear-gradient(180deg, #05080f 0%, #070b14 40%, #09101a 100%);
-      color: var(--text);
-      font-family: Inter, Arial, Helvetica, sans-serif;
-      overflow-x: hidden;
+      overflow-x:hidden;
     }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
+    .app{
+      max-width:1560px;
+      margin:24px auto;
+      padding:0 16px 24px;
+    }
+
+    .shell{
+      border:1px solid var(--line);
+      border-radius:36px;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(4,8,16,.92), rgba(5,10,20,.94));
+      box-shadow:var(--shadow);
+      min-height:calc(100vh - 48px);
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:26px 34px;
+      border-bottom:1px solid rgba(255,255,255,.06);
       background:
-        linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.025) 49.5%, transparent 50.5%, transparent 100%),
-        linear-gradient(180deg, rgba(255,255,255,0.015), transparent 22%);
-      mix-blend-mode: screen;
-      opacity: 0.75;
+        linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,.14)),
+        radial-gradient(circle at center top, rgba(255,210,0,.05), transparent 45%);
     }
 
-    .app {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 18px;
-      min-height: 100vh;
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      min-width:0;
     }
 
-    .shell {
-      border: 1px solid var(--line);
-      border-radius: 28px;
-      background: rgba(4, 7, 14, 0.86);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      backdrop-filter: blur(8px);
+    .brand-logo{
+      width:84px;
+      height:84px;
+      border-radius:22px;
+      object-fit:cover;
+      background:#08101d;
+      border:1px solid rgba(255,255,255,.06);
+      flex:0 0 auto;
     }
 
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 16px 18px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    .eyebrow{
+      color:var(--gold);
+      font-size:14px;
+      letter-spacing:.22em;
+      font-weight:800;
+      text-transform:uppercase;
+      margin-bottom:4px;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      min-width: 0;
+    .brand h1{
+      margin:0;
+      font-size:56px;
+      line-height:.96;
+      letter-spacing:-.03em;
+      font-weight:900;
     }
 
-    .brand img {
-      width: 54px;
-      height: 54px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: #0c1220;
+    .brand p{
+      margin:8px 0 0;
+      color:#d5dbe7;
+      font-size:20px;
     }
 
-    .brand-copy { min-width: 0; }
-    .eyebrow {
-      color: var(--accent);
-      font-size: 11px;
-      letter-spacing: 2.2px;
-      text-transform: uppercase;
-      margin-bottom: 3px;
+    .toolbar{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
 
-    .brand-copy h1 {
-      margin: 0;
-      font-size: clamp(20px, 2vw, 30px);
-      line-height: 1.05;
-      letter-spacing: 0.6px;
+    .pill{
+      border-radius:999px;
+      padding:14px 20px;
+      font-weight:800;
+      font-size:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background:#111a2a;
+      color:var(--text);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+      user-select:none;
     }
 
-    .brand-copy p {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 13px;
+    .pill.status-warn{background:var(--warn); color:#111;}
+    .pill.status-good{background:var(--good); color:#07110a;}
+    .pill.status-bad{background:var(--bad); color:#fff;}
+
+    .screen{
+      display:none;
+      opacity:0;
+      transform:translateY(10px);
+      transition:opacity .24s ease, transform .24s ease;
+      padding:30px 34px 36px;
     }
 
-    .top-actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-      justify-content: flex-end;
+    .screen.active{
+      display:block;
+      opacity:1;
+      transform:translateY(0);
     }
 
-    .chip, .mini-btn, .seg button, button, .option-card {
-      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), background var(--transition), opacity var(--transition);
+    .hero-grid,
+    .two-col{
+      display:grid;
+      grid-template-columns:1.35fr .95fr;
+      gap:24px;
     }
 
-    .chip {
-      border: 1px solid rgba(255,255,255,0.08);
-      padding: 9px 12px;
-      border-radius: 999px;
-      color: var(--muted);
-      font-size: 12px;
-      background: rgba(255,255,255,0.02);
-    }
-
-    .chip.live { color: #0b160d; background: var(--good); border-color: transparent; font-weight: 700; }
-    .chip.warn { color: #1d1400; background: var(--warn); border-color: transparent; font-weight: 700; }
-    .chip.stop { color: white; background: var(--bad); border-color: transparent; font-weight: 700; }
-
-    .mini-btn {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 999px;
-      padding: 10px 14px;
-      cursor: pointer;
-      font-weight: 700;
-    }
-
-    .mini-btn:hover, .option-card:hover, button:hover, .seg button:hover { transform: translateY(-1px); }
-
-    .mini-btn.active {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(255,212,0,0.12) inset;
-      color: var(--accent);
-    }
-
-    .stage {
-      position: relative;
-      min-height: calc(100vh - 180px);
-      overflow: hidden;
-    }
-
-    .screen {
-      position: absolute;
-      inset: 0;
-      padding: 24px;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateX(48px) scale(.985);
-      transition: opacity var(--transition), transform var(--transition);
-      overflow-y: auto;
-    }
-
-    .screen.active {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateX(0) scale(1);
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .card {
-      background: linear-gradient(180deg, rgba(17,24,39,0.9), rgba(10,15,26,0.96));
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: var(--shadow);
-    }
-
-    .hero-main {
-      min-height: 420px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+    .panel{
       background:
-        linear-gradient(135deg, rgba(255,212,0,0.11), rgba(255,212,0,0.02) 38%, rgba(44,87,165,0.08) 80%),
-        linear-gradient(180deg, rgba(17,24,39,0.96), rgba(10,15,26,0.98));
-      border-color: var(--line-strong);
+        linear-gradient(180deg, rgba(18,28,44,.96), rgba(10,18,32,.96)),
+        radial-gradient(circle at top right, rgba(255,210,0,.05), transparent 40%);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:30px;
+      padding:28px;
+      box-shadow:var(--shadow);
+      min-width:0;
     }
 
-    .hero-main h2 {
-      margin: 0 0 8px;
-      font-size: clamp(28px, 4vw, 48px);
-      line-height: .95;
-      letter-spacing: 0.4px;
+    .panel.outline{
+      border:1px solid rgba(255,210,0,.55);
     }
 
-    .hero-main .sub {
-      color: #dce4f4;
-      font-size: 16px;
-      max-width: 58ch;
-      line-height: 1.55;
+    .hero-title{
+      margin:10px 0 18px;
+      font-size:88px;
+      line-height:.92;
+      letter-spacing:-.05em;
+      font-weight:900;
     }
 
-    .grid-2, .grid-3, .grid-4 {
-      display: grid;
-      gap: 14px;
+    .hero-copy{
+      font-size:22px;
+      line-height:1.55;
+      color:#dde4f0;
+      max-width:1080px;
     }
 
-    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-
-    .option-card {
-      cursor: pointer;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px;
-      padding: 16px;
-      background: rgba(255,255,255,0.02);
-      min-height: 126px;
+    .mini-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+      margin-top:26px;
     }
 
-    .option-card.selected {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(255,212,0,0.18) inset;
-      background: rgba(255,212,0,0.05);
+    .mini{
+      background:rgba(255,255,255,.02);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      padding:22px;
     }
 
-    .option-card strong {
-      display: block;
-      margin-bottom: 7px;
-      font-size: 16px;
+    .mini h3{
+      margin:0 0 10px;
+      font-size:28px;
+      line-height:1;
     }
 
-    .option-card span, .muted, .note {
-      color: var(--muted);
-      line-height: 1.45;
-      font-size: 13px;
+    .mini p{
+      margin:0;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.45;
     }
 
-    .section-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 14px;
+    .choice-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+      margin-top:20px;
     }
 
-    .section-title h3, .section-title h2 {
-      margin: 0;
-      font-size: 20px;
+    .choice{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:12px;
+      width:100%;
+      text-align:left;
+      border:none;
+      cursor:pointer;
+      padding:24px 22px;
+      border-radius:24px;
+      color:var(--text);
+      background:
+        linear-gradient(180deg, rgba(18,28,44,.96), rgba(12,18,30,.98));
+      border:1px solid rgba(255,255,255,.08);
+      font:inherit;
+      transition:transform .18s ease, border-color .18s ease, background .18s ease;
     }
 
-    .section-title p {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 13px;
+    .choice:hover{
+      transform:translateY(-2px);
+      border-color:rgba(255,210,0,.35);
+      background:
+        linear-gradient(180deg, rgba(20,31,50,.98), rgba(12,19,32,.98));
     }
 
-    label {
-      display: block;
-      font-size: 12px;
-      color: #c5cfdf;
-      margin-bottom: 7px;
-      letter-spacing: .4px;
-      text-transform: uppercase;
+    .choice .big{
+      font-size:22px;
+      font-weight:900;
     }
 
-    input, select, textarea {
-      width: 100%;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.03);
-      color: var(--text);
-      padding: 14px 14px;
-      font: inherit;
-      outline: none;
-      resize: vertical;
-      min-height: 50px;
+    .choice .small{
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.55;
     }
 
-    textarea { min-height: 116px; }
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(255,212,0,0.08);
+    .section-title{
+      margin:0 0 6px;
+      font-size:34px;
+      font-weight:900;
+      letter-spacing:-.03em;
     }
 
-    button {
-      border: none;
-      border-radius: 14px;
-      padding: 14px 18px;
-      background: linear-gradient(180deg, #ffd400, #ffb800);
-      color: #171204;
-      font-weight: 800;
-      letter-spacing: .4px;
-      cursor: pointer;
+    .section-copy{
+      margin:0 0 20px;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.5;
     }
 
-    button.secondary {
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.08);
+    .back-row{
+      display:flex;
+      justify-content:flex-end;
+      margin-bottom:18px;
     }
 
-    button.danger {
-      background: linear-gradient(180deg, #ff7a7a, #ff4f4f);
-      color: white;
+    .ghost-btn{
+      border:none;
+      cursor:pointer;
+      padding:14px 24px;
+      border-radius:20px;
+      font:inherit;
+      font-weight:800;
+      color:var(--text);
+      background:linear-gradient(180deg, #182338, #121b2c);
+      border:1px solid rgba(255,255,255,.08);
     }
 
-    .button-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 18px;
+    .workflow-grid{
+      display:grid;
+      grid-template-columns:1.08fr .92fr;
+      gap:24px;
+      align-items:start;
     }
 
-    .seg {
-      display: inline-flex;
-      gap: 6px;
-      padding: 6px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 14px;
-      flex-wrap: wrap;
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:16px;
     }
 
-    .seg button {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid transparent;
-      margin: 0;
-      padding: 10px 12px;
-      min-width: 0;
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
     }
 
-    .seg button.active {
-      background: rgba(255,255,255,0.06);
-      color: var(--accent);
-      border-color: rgba(255,212,0,0.24);
+    .field label{
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--gold);
+      font-weight:800;
     }
 
-    .stepbar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 18px;
+    .field.full{grid-column:1/-1}
+
+    input, select, textarea{
+      width:100%;
+      border:none;
+      outline:none;
+      border-radius:18px;
+      padding:16px 18px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+      color:var(--text);
+      font:inherit;
+      resize:vertical;
+      min-height:58px;
     }
 
-    .step {
-      padding: 12px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.02);
-      color: var(--muted);
-      font-size: 12px;
+    textarea{
+      min-height:120px;
     }
 
-    .step.active {
-      border-color: rgba(255,212,0,0.32);
-      background: rgba(255,212,0,0.06);
-      color: var(--text);
+    .button-row{
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-top:20px;
     }
 
-    .step strong { display: block; color: inherit; font-size: 13px; margin-bottom: 3px; }
-
-    .kpi {
-      border-radius: 16px;
-      padding: 15px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.07);
-      min-height: 95px;
+    .primary-btn{
+      border:none;
+      cursor:pointer;
+      border-radius:20px;
+      padding:16px 24px;
+      font:inherit;
+      font-weight:900;
+      background:linear-gradient(180deg, #ffd200, #f4c300);
+      color:#111;
+      box-shadow:0 10px 24px rgba(255,210,0,.18);
     }
 
-    .kpi .value {
-      font-size: 22px;
-      font-weight: 800;
-      margin-bottom: 6px;
+    .secondary-btn{
+      border:none;
+      cursor:pointer;
+      border-radius:20px;
+      padding:16px 24px;
+      font:inherit;
+      font-weight:800;
+      background:linear-gradient(180deg, #162238, #111a2b);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.08);
     }
 
-    .banner {
-      border-radius: 18px;
-      padding: 18px;
-      font-weight: 800;
-      letter-spacing: .2px;
-      font-size: clamp(18px, 2vw, 26px);
-      margin-bottom: 14px;
+    .status-card{
+      border-radius:28px;
+      padding:22px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(10,18,30,.98), rgba(8,14,24,.98));
+      margin-bottom:18px;
     }
 
-    .banner.safe { background: rgba(24, 211, 127, 0.12); border: 1px solid rgba(24, 211, 127, 0.35); color: #8dffbf; }
-    .banner.warning { background: rgba(255, 176, 32, 0.12); border: 1px solid rgba(255,176,32,0.35); color: #ffd88e; }
-    .banner.stop { background: rgba(255, 79, 79, 0.12); border: 1px solid rgba(255,79,79,0.35); color: #ffadad; }
-
-    .list-panel ul {
-      margin: 0;
-      padding-left: 18px;
-      color: #edf2fb;
-      line-height: 1.55;
+    .status-banner{
+      border-radius:22px;
+      padding:18px 20px;
+      font-size:24px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      margin-bottom:18px;
     }
 
-    .list-panel li + li { margin-top: 8px; }
+    .status-banner.safe{background:rgba(0,200,83,.18); color:#6dffad; border:1px solid rgba(0,200,83,.35);}
+    .status-banner.caution{background:rgba(255,179,0,.18); color:#ffd45a; border:1px solid rgba(255,179,0,.35);}
+    .status-banner.no-go{background:rgba(255,59,48,.16); color:#ff8c84; border:1px solid rgba(255,59,48,.35);}
 
-    .check-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 11px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      font-size: 14px;
+    .split-results{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
     }
 
-    .check-row:last-child { border-bottom: none; }
-
-    .tick {
-      font-weight: 900;
-      min-width: 30px;
-      text-align: right;
+    .result-box{
+      background:rgba(255,255,255,.02);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      padding:18px;
     }
 
-    .tick.good { color: var(--good); }
-    .tick.bad { color: var(--bad); }
-    .tick.warn { color: var(--warn); }
-
-    .chat-shell {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 18px;
-      min-height: 620px;
+    .result-box h4{
+      margin:0 0 10px;
+      font-size:14px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--gold);
     }
 
-    .chat-history {
-      height: 460px;
-      overflow: auto;
-      padding-right: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    .result-box ul{
+      margin:0;
+      padding-left:18px;
+      color:#e8edf5;
+      line-height:1.55;
     }
 
-    .bubble {
-      border-radius: 16px;
-      padding: 14px;
-      line-height: 1.5;
-      border: 1px solid rgba(255,255,255,0.06);
-      white-space: pre-wrap;
+    .why-box{
+      margin-top:16px;
+      background:rgba(255,255,255,.02);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      padding:18px;
+      line-height:1.6;
+      color:#e7edf7;
     }
 
-    .bubble.user {
-      background: rgba(255,255,255,0.05);
-      align-self: flex-end;
-      max-width: 82%;
+    .chat-layout{
+      display:grid;
+      grid-template-columns:380px 1fr;
+      gap:24px;
     }
 
-    .bubble.assistant {
-      background: rgba(255,212,0,0.07);
-      border-color: rgba(255,212,0,0.18);
-      max-width: 92%;
+    .mode-stack,
+    .prompt-stack{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
     }
 
-    .bubble.system {
-      background: rgba(45,105,255,0.08);
-      border-color: rgba(45,105,255,0.18);
-      max-width: 92%;
+    .mode-btn,
+    .prompt-btn{
+      width:100%;
+      border:none;
+      cursor:pointer;
+      text-align:left;
+      padding:18px 18px;
+      border-radius:20px;
+      background:linear-gradient(180deg, rgba(18,28,44,.96), rgba(12,18,30,.96));
+      border:1px solid rgba(255,255,255,.08);
+      color:var(--text);
+      font:inherit;
+      font-weight:800;
+      transition:all .18s ease;
     }
 
-    .composer {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: end;
-      margin-top: 14px;
+    .mode-btn.active,
+    .prompt-btn:hover{
+      border-color:rgba(255,210,0,.45);
+      color:var(--gold);
     }
 
-    .suggestions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 14px;
+    .mode-note{
+      margin-top:18px;
+      color:#d5dce7;
+      line-height:1.5;
+      font-size:16px;
     }
 
-    .suggestions button {
-      width: auto;
-      padding: 10px 12px;
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.08);
-      font-size: 13px;
+    .chat-shell{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      min-height:760px;
     }
 
-    .speak-indicator {
-      color: var(--accent);
-      font-size: 12px;
-      margin-top: 8px;
-      min-height: 16px;
+    .chat-feed{
+      border-radius:28px;
+      border:1px solid rgba(255,255,255,.08);
+      background:
+        linear-gradient(180deg, rgba(8,16,32,.98), rgba(6,12,24,.98)),
+        radial-gradient(circle at top right, rgba(255,210,0,.04), transparent 35%);
+      padding:24px;
+      min-height:560px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      overflow:auto;
     }
 
-    .footnote {
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
+    .bubble{
+      max-width:86%;
+      padding:20px 22px;
+      border-radius:24px;
+      line-height:1.55;
+      font-size:18px;
+      white-space:pre-wrap;
     }
 
-    .loading {
-      opacity: 0.6;
-      pointer-events: none;
+    .bubble.user{
+      align-self:flex-end;
+      background:linear-gradient(180deg, #182338, #121b2c);
+      border:1px solid rgba(255,255,255,.08);
     }
 
-    .pulse::after {
-      content: "";
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      margin-left: 8px;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 0 0 rgba(255,212,0,0.7);
-      animation: pulse 1.8s infinite;
-      vertical-align: middle;
+    .bubble.arthur{
+      align-self:flex-start;
+      background:rgba(9,33,95,.34);
+      border:1px solid rgba(56,112,255,.22);
     }
 
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(255,212,0,0.65); }
-      70% { box-shadow: 0 0 0 12px rgba(255,212,0,0); }
-      100% { box-shadow: 0 0 0 0 rgba(255,212,0,0); }
+    .bubble.info{
+      align-self:flex-start;
+      background:rgba(255,179,0,.08);
+      border:1px solid rgba(255,210,0,.25);
+      color:#f4f0d2;
     }
 
-    @media (max-width: 980px) {
-      .hero, .chat-shell { grid-template-columns: 1fr; }
-      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .topbar { align-items: flex-start; flex-direction: column; }
-      .screen { padding: 16px; }
+    .composer{
+      display:grid;
+      grid-template-columns:1fr auto auto;
+      gap:14px;
+      align-items:end;
     }
 
-    @media (max-width: 680px) {
-      .grid-2, .grid-3, .grid-4, .stepbar { grid-template-columns: 1fr; }
-      .composer { grid-template-columns: 1fr; }
-      .brand-copy h1 { font-size: 22px; }
-      .hero-main h2 { font-size: 30px; }
+    .composer textarea{
+      min-height:140px;
+      border:1px solid rgba(255,210,0,.65);
+      background:rgba(255,255,255,.02);
+    }
+
+    .speak-btn{
+      background:linear-gradient(180deg, #162238, #111a2b);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:20px;
+      padding:18px 24px;
+      font:inherit;
+      font-weight:900;
+      cursor:pointer;
+      min-width:108px;
+    }
+
+    .send-btn{
+      background:linear-gradient(180deg, #ffd200, #f0c400);
+      color:#111;
+      border:none;
+      border-radius:20px;
+      padding:18px 24px;
+      font:inherit;
+      font-weight:900;
+      cursor:pointer;
+      min-width:98px;
+    }
+
+    .muted{
+      color:var(--muted);
+    }
+
+    @media (max-width:1280px){
+      .hero-grid,.two-col,.workflow-grid,.chat-layout{grid-template-columns:1fr}
+      .hero-title{font-size:68px}
+      .brand h1{font-size:44px}
+    }
+
+    @media (max-width:900px){
+      .topbar{padding:20px}
+      .screen{padding:20px}
+      .brand-logo{width:64px;height:64px}
+      .brand h1{font-size:36px}
+      .brand p{font-size:17px}
+      .hero-title{font-size:52px}
+      .mini-grid,.choice-grid,.form-grid,.split-results{grid-template-columns:1fr}
+      .composer{grid-template-columns:1fr}
+      .bubble{max-width:100%}
     }
   </style>
 </head>
@@ -564,533 +577,552 @@
     <div class="shell">
       <div class="topbar">
         <div class="brand">
-          <img src="guardian.jpg" alt="Safety Guardian logo">
-          <div class="brand-copy">
+          <img class="brand-logo" src="guardian.jpg" alt="Safety Guardian logo" onerror="this.style.display='none';">
+          <div>
             <div class="eyebrow">Aegis VII // Safety Guardian</div>
             <h1>Arthur Safety Oversight</h1>
             <p>Before, during and after every job.</p>
           </div>
         </div>
-        <div class="top-actions">
-          <div id="connectionChip" class="chip">Arthur link: not checked</div>
-          <button class="mini-btn" id="speechToggle">Speech: ON</button>
-          <button class="mini-btn" id="voiceToggle">Mic Input</button>
+
+        <div class="toolbar">
+          <div id="arthurStatus" class="pill status-warn">Arthur link: checking...</div>
+          <button id="speechToggle" class="pill" type="button">Speech: ON</button>
+          <button id="micToggle" class="pill" type="button">Mic Input</button>
         </div>
       </div>
 
-      <div class="stage">
-        <section class="screen active" id="homeScreen">
-          <div class="hero">
-            <div class="card hero-main">
-              <div>
-                <div class="eyebrow">Interactive demo mode</div>
-                <h2>Walk the job.<br>Challenge the job.<br>Stop the job if needed.</h2>
-                <p class="sub">
-                  Arthur can guide a task through scope, hazard recognition, 3W LMRA, controls, permit checks,
-                  and a clear go / caution / no-go decision. Or you can ask direct questions on confined space,
-                  PSMS, IOGP Life-Saving Rules, HSG65 and general UK HSE legislation.
-                </p>
-              </div>
-
-              <div class="grid-3">
-                <div class="kpi">
-                  <div class="value">3W</div>
-                  <div class="muted">What can hurt you? Where is the risk? What controls keep you safe?</div>
-                </div>
-                <div class="kpi">
-                  <div class="value">GO / NO-GO</div>
-                  <div class="muted">Arthur explains why work can continue, pause, or stop.</div>
-                </div>
-                <div class="kpi">
-                  <div class="value">Voice + Text</div>
-                  <div class="muted">Speech input, spoken response, and typed interaction in one interface.</div>
-                </div>
-              </div>
+      <!-- HOME -->
+      <section id="homeScreen" class="screen active">
+        <div class="hero-grid">
+          <div class="panel outline">
+            <div class="eyebrow">Interactive Demo Mode</div>
+            <div class="hero-title">Walk the job.<br>Challenge the job.<br>Stop the job if needed.</div>
+            <div class="hero-copy">
+              Arthur can guide a task through scope, hazard recognition, 3W LMRA, controls,
+              permit checks, and a clear go / caution / no-go decision. Or you can ask direct
+              questions on confined space, PSMS, IOGP Life-Saving Rules, HSG65 and general UK HSE legislation.
             </div>
 
-            <div class="card">
-              <div class="section-title">
-                <div>
-                  <h2>Choose mode</h2>
-                  <p>Run the work process or open direct advice mode.</p>
-                </div>
+            <div class="mini-grid">
+              <div class="mini">
+                <h3>3W</h3>
+                <p>What can hurt you? Where is the risk? What controls keep you safe?</p>
               </div>
-              <div class="grid-2">
-                <div class="option-card" onclick="goWorkflow()">
-                  <strong>Guided job workflow</strong>
-                  <span>Structured permit-style flow for CSE or other high-risk work, with 3W prompts and a decision gate.</span>
-                </div>
-                <div class="option-card" onclick="goAsk()">
-                  <strong>Ask Arthur</strong>
-                  <span>Open question-and-answer mode for legislation, rules, controls, and practical safe ways forward.</span>
-                </div>
+              <div class="mini">
+                <h3>GO / NO-GO</h3>
+                <p>Arthur explains why work can continue, pause, or stop.</p>
               </div>
-              <div class="card" style="margin-top:14px;padding:16px; background: rgba(255,255,255,0.025);">
-                <div class="eyebrow">Knowledge behaviour</div>
-                <div class="muted">
-                  Demo logic is designed to explain risks, point to required controls, and refuse unsafe continuation where critical safeguards are missing.
-                </div>
-                <div class="footnote">
-                  For a serious live deployment, keep legal and company guidance grounded through approved source documents and auditable prompts.
-                </div>
+              <div class="mini">
+                <h3>Voice + Text</h3>
+                <p>Speech input, spoken response, and typed interaction in one interface.</p>
               </div>
             </div>
           </div>
-        </section>
 
-        <section class="screen" id="workflowScreen">
-          <div class="card">
-            <div class="section-title">
-              <div>
-                <h2>Guided work assessment</h2>
-                <p>Arthur walks the team through scope, hazards, controls and decision gates.</p>
-              </div>
-              <div class="seg" id="workTypeSeg">
-                <button class="active" data-value="Confined Space">Confined Space</button>
-                <button data-value="Working at Height">Work at Height</button>
-                <button data-value="Lifting">Lifting</button>
-                <button data-value="Electrical">Electrical</button>
-              </div>
+          <div class="panel">
+            <h2 class="section-title">Choose mode</h2>
+            <p class="section-copy">Run the work process or open direct advice mode.</p>
+
+            <div class="choice-grid">
+              <button class="choice" type="button" onclick="showScreen('workflowScreen')">
+                <div class="big">Guided job workflow</div>
+                <div class="small">Structured permit-style flow for CSE or other high-risk work, with 3W prompts and a decision gate.</div>
+              </button>
+
+              <button class="choice" type="button" onclick="showScreen('chatScreen')">
+                <div class="big">Ask Arthur</div>
+                <div class="small">Open question-and-answer mode for legislation, rules, controls, and practical safe ways forward.</div>
+              </button>
             </div>
 
-            <div class="stepbar">
-              <div class="step active"><strong>1. Scope</strong>Define the work and who is involved.</div>
-              <div class="step active"><strong>2. 3W LMRA</strong>Spot hazards, location of risk, and controls.</div>
-              <div class="step active"><strong>3. Safeguards</strong>Check permit, monitoring, rescue and competence.</div>
-              <div class="step active"><strong>4. Decision</strong>Arthur explains safe path, pause, or stop.</div>
-            </div>
-
-            <div class="grid-2">
-              <div>
-                <label>Job title</label>
-                <input id="jobTitle" placeholder="Tank inspection and sludge removal">
-              </div>
-              <div>
-                <label>Location</label>
-                <input id="location" placeholder="Port cargo tank 2P">
+            <div class="panel" style="margin-top:20px;padding:22px;">
+              <div class="eyebrow">Knowledge Behaviour</div>
+              <div class="hero-copy" style="font-size:16px;max-width:none;">
+                Demo logic is designed to explain risks, point to required controls, and refuse unsafe
+                continuation where critical safeguards are missing.
+                <br><br>
+                For a serious live deployment, keep legal and company guidance grounded through approved source
+                documents and auditable prompts.
               </div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div class="grid-3">
-              <div>
-                <label>People involved</label>
-                <input id="people" type="number" min="1" placeholder="4">
-              </div>
-              <div>
-                <label>Standby person</label>
-                <input id="standbyName" placeholder="Named standby / rescue watch">
-              </div>
-              <div>
-                <label>Gas monitoring method</label>
-                <input id="monitoringMethod" placeholder="Continuous 4-gas monitor at entry + entrant unit">
-              </div>
-            </div>
+      <!-- WORKFLOW -->
+      <section id="workflowScreen" class="screen">
+        <div class="back-row">
+          <button class="ghost-btn" type="button" onclick="showScreen('homeScreen')">Back to home</button>
+        </div>
 
-            <div>
-              <label>Scope of work description</label>
-              <textarea id="description" placeholder="Describe the task, tools, SIMOPS, energy sources, atmosphere concerns, access route, duration, and any unusual conditions."></textarea>
-            </div>
+        <div class="workflow-grid">
+          <div class="panel">
+            <h2 class="section-title">Guided job workflow</h2>
+            <p class="section-copy">Walk the work like Safety Guardian: scope, 3W, controls, permit checks, then decision.</p>
 
-            <div class="grid-3">
-              <div>
-                <label>3W — what can hurt or kill you?</label>
-                <textarea id="whatRisk" placeholder="Toxic atmosphere, oxygen deficiency, engulfment, ignition, restricted egress..."></textarea>
+            <div class="form-grid">
+              <div class="field">
+                <label for="jobTitle">Job title</label>
+                <input id="jobTitle" placeholder="Example: Ballast tank internal inspection">
               </div>
-              <div>
-                <label>3W — where is the risk?</label>
-                <textarea id="whereRisk" placeholder="Inside vessel low point, at manway, around agitator drive, during entry/exit..."></textarea>
-              </div>
-              <div>
-                <label>3W — what controls are in place?</label>
-                <textarea id="controlsKnown" placeholder="Isolation, gas test, rescue team ready, forced ventilation, communications, permit, competent persons..."></textarea>
-              </div>
-            </div>
 
-            <div class="grid-4">
-              <div>
-                <label>Gas test complete?</label>
-                <select id="gasTest"><option value="yes">Yes</option><option value="no">No</option><option value="unknown">Unknown</option></select>
+              <div class="field">
+                <label for="workType">Work type</label>
+                <select id="workType">
+                  <option>Confined Space Entry</option>
+                  <option>Working at Height</option>
+                  <option>Lifting Operation</option>
+                  <option>Electrical Work</option>
+                  <option>Hot Work</option>
+                  <option>Breaking Containment</option>
+                </select>
               </div>
-              <div>
-                <label>Continuous monitoring?</label>
-                <select id="monitoring"><option value="yes">Yes</option><option value="no">No</option><option value="unknown">Unknown</option></select>
+
+              <div class="field full">
+                <label for="description">Scope of work</label>
+                <textarea id="description" placeholder="Describe what is being done, how it will be done, what plant or equipment is involved, and what could change during the task."></textarea>
               </div>
-              <div>
-                <label>Rescue plan ready?</label>
-                <select id="rescuePlan"><option value="yes">Yes</option><option value="no">No</option><option value="unknown">Unknown</option></select>
+
+              <div class="field">
+                <label for="location">Location</label>
+                <input id="location" placeholder="Example: Port ballast tank 2P">
               </div>
-              <div>
-                <label>Permit approved?</label>
-                <select id="permit"><option value="yes">Yes</option><option value="no">No</option><option value="unknown">Unknown</option></select>
+
+              <div class="field">
+                <label for="people">People involved</label>
+                <input id="people" type="number" min="1" placeholder="Number of personnel">
+              </div>
+
+              <div class="field">
+                <label for="permitStatus">Permit status</label>
+                <select id="permitStatus">
+                  <option>Not confirmed</option>
+                  <option>Drafted but not approved</option>
+                  <option>Approved and in place</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="gasStatus">Gas testing</label>
+                <select id="gasStatus">
+                  <option>Not confirmed</option>
+                  <option>Initial test only</option>
+                  <option>Tested and acceptable</option>
+                  <option>Tested with continuous monitoring</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="standbyStatus">Standby / attendant</label>
+                <select id="standbyStatus">
+                  <option>Not confirmed</option>
+                  <option>Assigned but not briefed</option>
+                  <option>Assigned and briefed</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="rescueStatus">Rescue arrangements</label>
+                <select id="rescueStatus">
+                  <option>Not confirmed</option>
+                  <option>General plan only</option>
+                  <option>Specific plan and equipment confirmed</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="monitoringStatus">Monitoring status</label>
+                <select id="monitoringStatus">
+                  <option>Not confirmed</option>
+                  <option>Intermittent checks only</option>
+                  <option>Continuous monitoring in place</option>
+                </select>
+              </div>
+
+              <div class="field full">
+                <label for="extraConcerns">Anything else Arthur must challenge?</label>
+                <textarea id="extraConcerns" placeholder="Example: poor access, heat stress, sludge in bottom, unclear isolation, conflicting SIMOPS, weather, language barrier."></textarea>
               </div>
             </div>
 
             <div class="button-row">
-              <button onclick="runWorkflowAssessment()">Run Arthur assessment</button>
-              <button class="secondary" onclick="showScreen('homeScreen')">Back to home</button>
-              <button class="secondary" onclick="prefillDemo()">Load demo example</button>
+              <button class="primary-btn" type="button" onclick="runWorkflow()">Analyse task</button>
+              <button class="secondary-btn" type="button" onclick="fillDemoCSE()">Load demo CSE example</button>
+              <button class="secondary-btn" type="button" onclick="clearWorkflow()">Clear</button>
             </div>
           </div>
 
-          <div class="card" id="workflowResult" style="margin-top:18px; display:none;"></div>
-        </section>
+          <div class="panel">
+            <h2 class="section-title">Arthur decision</h2>
+            <p class="section-copy">Arthur should explain risk, challenge weak controls, and say if the job must stop.</p>
 
-        <section class="screen" id="askScreen">
-          <div class="card chat-shell">
-            <aside class="card" style="padding:16px; background: rgba(255,255,255,0.02);">
-              <div class="section-title">
-                <div>
-                  <h3>Arthur modes</h3>
-                  <p>Switch the tone of the answer.</p>
+            <div class="status-card">
+              <div id="decisionBanner" class="status-banner caution">Waiting for assessment</div>
+
+              <div class="split-results">
+                <div class="result-box">
+                  <h4>What can hurt you</h4>
+                  <ul id="hurtList">
+                    <li class="muted">Arthur will populate this after assessment.</li>
+                  </ul>
                 </div>
-              </div>
-              <div class="seg" id="askModeSeg" style="display:flex; flex-direction:column; align-items:stretch;">
-                <button class="active" data-value="operational">Operational guidance</button>
-                <button data-value="coaching">Explain like a toolbox talk</button>
-                <button data-value="strict">Strict challenge / stop-work</button>
-              </div>
 
-              <div style="margin-top:16px;" class="muted">
-                Arthur should answer like Safety Guardian: clear, practical, calm, and capable of saying the task must not continue.
-              </div>
-
-              <div class="suggestions" style="margin-top:18px; flex-direction:column; align-items:stretch;">
-                <button onclick="sendSuggestion('We want to enter a ballast tank for inspection. What must be in place before entry?')">CSE entry controls</button>
-                <button onclick="sendSuggestion('Explain 3W LMRA for a new worker in simple language.')">Explain 3W LMRA</button>
-                <button onclick="sendSuggestion('How does HSG65 align with Safety Guardian in practice?')">HSG65 alignment</button>
-                <button onclick="sendSuggestion('What should happen if gas monitoring fails during the job?')">Monitoring loss response</button>
-                <button onclick="sendSuggestion('Give me a stop-work explanation if the rescue plan is weak.')">Stop-work explanation</button>
-              </div>
-
-              <div class="footnote">
-                Knowledge target: PSMS / OIMS concepts, IOGP Life-Saving Rules, HSG65 / PDCA, UK HSE law basics, and practical field controls.
-              </div>
-            </aside>
-
-            <main>
-              <div class="section-title">
-                <div>
-                  <h2>Ask Arthur</h2>
-                  <p>Questions, challenge, safe alternatives, and spoken responses.</p>
+                <div class="result-box">
+                  <h4>Where is the risk</h4>
+                  <ul id="riskList">
+                    <li class="muted">Arthur will populate this after assessment.</li>
+                  </ul>
                 </div>
-                <button class="secondary" onclick="showScreen('homeScreen')">Back to home</button>
-              </div>
 
-              <div id="chatHistory" class="chat-history"></div>
+                <div class="result-box">
+                  <h4>Required controls</h4>
+                  <ul id="controlsList">
+                    <li class="muted">Arthur will populate this after assessment.</li>
+                  </ul>
+                </div>
 
-              <div class="composer">
-                <textarea id="chatInput" placeholder="Ask Arthur about a task, a rule, a legal duty, or whether the job is safe to continue..."></textarea>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                  <button class="secondary" onclick="startVoiceInput('chatInput')">Speak</button>
-                  <button onclick="sendChat()">Send</button>
+                <div class="result-box">
+                  <h4>Way forward</h4>
+                  <ul id="improvementList">
+                    <li class="muted">Arthur will populate this after assessment.</li>
+                  </ul>
                 </div>
               </div>
 
-              <div id="speechIndicator" class="speak-indicator"></div>
-            </main>
+              <div class="why-box">
+                <strong style="color:var(--gold);display:block;margin-bottom:8px;">Arthur reasoning</strong>
+                <div id="whyText" class="muted">No assessment yet.</div>
+              </div>
+            </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
+
+      <!-- CHAT -->
+      <section id="chatScreen" class="screen">
+        <div class="back-row">
+          <button class="ghost-btn" type="button" onclick="showScreen('homeScreen')">Back to home</button>
+        </div>
+
+        <div class="chat-layout">
+          <div class="panel">
+            <h2 class="section-title">Arthur modes</h2>
+            <p class="section-copy">Switch the tone of the answer.</p>
+
+            <div class="mode-stack">
+              <button class="mode-btn active" type="button" data-mode="operational" onclick="setArthurMode('operational', this)">Operational guidance</button>
+              <button class="mode-btn" type="button" data-mode="toolbox" onclick="setArthurMode('toolbox', this)">Explain like a toolbox talk</button>
+              <button class="mode-btn" type="button" data-mode="strict" onclick="setArthurMode('strict', this)">Strict challenge / stop-work</button>
+            </div>
+
+            <div class="mode-note">
+              Arthur should answer like Safety Guardian: clear, practical, calm, and capable of saying
+              the task must not continue.
+            </div>
+
+            <div class="prompt-stack" style="margin-top:26px;">
+              <button class="prompt-btn" type="button" onclick="usePrompt('What must be in place before confined space entry starts?')">CSE entry controls</button>
+              <button class="prompt-btn" type="button" onclick="usePrompt('Explain 3W LMRA in plain English to a mixed-language crew.')">Explain 3W LMRA</button>
+              <button class="prompt-btn" type="button" onclick="usePrompt('How does this fit HSG65 plan, do, check, act thinking?')">HSG65 alignment</button>
+              <button class="prompt-btn" type="button" onclick="usePrompt('Loss of monitoring during the task. What should happen next?')">Monitoring loss response</button>
+              <button class="prompt-btn" type="button" onclick="usePrompt('Give me a stop-work explanation for entering a tank without confirmed gas testing.')">Stop-work explanation</button>
+            </div>
+          </div>
+
+          <div class="panel chat-shell">
+            <div>
+              <h2 class="section-title">Ask Arthur</h2>
+              <p class="section-copy">Questions, challenge, safe alternatives, and spoken responses.</p>
+            </div>
+
+            <div id="chatFeed" class="chat-feed">
+              <div class="bubble info">Arthur online check is shown in the badge above. Ask about the task, the controls, the permit, or whether the job should stop.</div>
+            </div>
+
+            <div class="composer">
+              <textarea id="chatInput" placeholder="Ask Arthur about a task, a rule, a legal duty, or whether the job is safe to continue..."></textarea>
+              <button class="speak-btn" type="button" onclick="startMicForChat()">Speak</button>
+              <button class="send-btn" type="button" onclick="sendChat()">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
   <script>
-    const API_ENDPOINT = '/api/guardian';
-    let speechEnabled = true;
-    let activeRecognition = null;
-    let askMode = 'operational';
-
-    const chatHistoryEl = document.getElementById('chatHistory');
-    const connectionChip = document.getElementById('connectionChip');
-    const speechIndicator = document.getElementById('speechIndicator');
+    let speechOn = true;
+    let arthurMode = 'operational';
+    let recognition = null;
+    let micTarget = 'chat';
 
     function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
     }
 
-    function goWorkflow() { showScreen('workflowScreen'); }
-    function goAsk() {
-      showScreen('askScreen');
-      if (!chatHistoryEl.children.length) {
-        addMessage('assistant', 'Arthur online. Ask about the task, the controls, the permit, or whether the job should stop.');
+    function setArthurMode(mode, btn) {
+      arthurMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function usePrompt(text) {
+      showScreen('chatScreen');
+      document.getElementById('chatInput').value = text;
+    }
+
+    function setBadgeOnline() {
+      const badge = document.getElementById('arthurStatus');
+      badge.textContent = 'Arthur link: online';
+      badge.classList.remove('status-warn','status-bad');
+      badge.classList.add('status-good');
+    }
+
+    function setBadgeUnavailable() {
+      const badge = document.getElementById('arthurStatus');
+      badge.textContent = 'Arthur link: unavailable';
+      badge.classList.remove('status-good','status-bad');
+      badge.classList.add('status-warn');
+    }
+
+    async function updateArthurStatus() {
+      try {
+        const res = await fetch('/api/guardian/health', { cache: 'no-store' });
+        const data = await res.json();
+
+        if (data && data.status === 'ok' && data.arthur === 'online') {
+          setBadgeOnline();
+        } else {
+          setBadgeUnavailable();
+        }
+      } catch (err) {
+        setBadgeUnavailable();
       }
+    }
+
+    function speakText(text) {
+      if (!speechOn || !window.speechSynthesis || !text) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 0.95;
+      utter.pitch = 1.0;
+      utter.volume = 1.0;
+      window.speechSynthesis.speak(utter);
     }
 
     document.getElementById('speechToggle').addEventListener('click', () => {
-      speechEnabled = !speechEnabled;
-      document.getElementById('speechToggle').classList.toggle('active', speechEnabled);
-      document.getElementById('speechToggle').textContent = `Speech: ${speechEnabled ? 'ON' : 'OFF'}`;
-      if (!speechEnabled) window.speechSynthesis.cancel();
+      speechOn = !speechOn;
+      document.getElementById('speechToggle').textContent = `Speech: ${speechOn ? 'ON' : 'OFF'}`;
+      if (!speechOn && window.speechSynthesis) window.speechSynthesis.cancel();
     });
 
-    document.getElementById('voiceToggle').addEventListener('click', () => startVoiceInput('chatInput'));
-
-    document.querySelectorAll('#workTypeSeg button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#workTypeSeg button').forEach(x => x.classList.remove('active'));
-        btn.classList.add('active');
-      });
+    document.getElementById('micToggle').addEventListener('click', () => {
+      showScreen('chatScreen');
+      startMicForChat();
     });
 
-    document.querySelectorAll('#askModeSeg button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#askModeSeg button').forEach(x => x.classList.remove('active'));
-        btn.classList.add('active');
-        askMode = btn.dataset.value;
-      });
-    });
+    function initSpeechRecognition() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return null;
+      const rec = new SR();
+      rec.lang = 'en-US';
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
 
-    function getSelectedWorkType() {
-      return document.querySelector('#workTypeSeg button.active').dataset.value;
-    }
-
-    function prefillDemo() {
-      document.getElementById('jobTitle').value = 'Cargo tank internal inspection and sludge removal';
-      document.getElementById('location').value = 'Tank 2P';
-      document.getElementById('people').value = '4';
-      document.getElementById('standbyName').value = 'Dedicated standby at entry point';
-      document.getElementById('monitoringMethod').value = 'Continuous 4-gas monitor with entrant check and entry-point watch';
-      document.getElementById('description').value = 'Team plans confined space entry into cargo tank for inspection and sludge removal. Access via manway. Portable lighting, ventilation ducting, hand tools, and vacuum hose to be used. Possible residue vapours, oxygen deficiency, slip hazard, restricted access and delayed egress.';
-      document.getElementById('whatRisk').value = 'Oxygen deficiency, toxic vapours, ignition source, slips, engulfment of residue, poor communication, difficult rescue.';
-      document.getElementById('whereRisk').value = 'Inside tank bottom, around sludge pockets, during entry at manway, around hoses and lighting cables.';
-      document.getElementById('controlsKnown').value = 'Isolation complete, permit planned, ventilation arranged, rescue team notified, standby assigned, gas monitor available, communication radios ready.';
-      document.getElementById('gasTest').value = 'yes';
-      document.getElementById('monitoring').value = 'yes';
-      document.getElementById('rescuePlan').value = 'yes';
-      document.getElementById('permit').value = 'yes';
-    }
-
-    async function pingArthur() {
-      try {
-        const res = await fetch(API_ENDPOINT + '/health');
-        const data = await res.json();
-        if (data.ok) {
-          connectionChip.textContent = data.target ? `Arthur link: ${data.target}` : 'Arthur link: connected';
-          connectionChip.className = 'chip live';
+      rec.onresult = function(event) {
+        const text = event.results[0][0].transcript || '';
+        if (micTarget === 'chat') {
+          document.getElementById('chatInput').value = text;
         } else {
-          connectionChip.textContent = 'Arthur link: unavailable';
-          connectionChip.className = 'chip warn';
+          document.getElementById('description').value = text;
         }
-      } catch (err) {
-        connectionChip.textContent = 'Arthur link: unavailable';
-        connectionChip.className = 'chip warn';
-      }
+      };
+
+      rec.onerror = function() {};
+      return rec;
     }
 
-    function addMessage(role, text) {
-      const div = document.createElement('div');
-      div.className = `bubble ${role}`;
-      div.textContent = text;
-      chatHistoryEl.appendChild(div);
-      chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
-      if (role === 'assistant' && speechEnabled) speak(text);
+    function startMicForChat() {
+      micTarget = 'chat';
+      if (!recognition) recognition = initSpeechRecognition();
+      if (recognition) recognition.start();
     }
 
-    function speak(text) {
-      if (!('speechSynthesis' in window) || !speechEnabled) return;
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.96;
-      utterance.pitch = 0.95;
-      utterance.lang = 'en-GB';
-      window.speechSynthesis.speak(utterance);
+    function fillDemoCSE() {
+      document.getElementById('jobTitle').value = 'Ballast tank internal inspection';
+      document.getElementById('workType').value = 'Confined Space Entry';
+      document.getElementById('description').value = 'Two workers plan to enter a ballast tank for internal visual inspection and condition check. Access is by vertical ladder. Task includes lighting setup, photo capture and close inspection of lower structure.';
+      document.getElementById('location').value = 'Port ballast tank 2P';
+      document.getElementById('people').value = '2';
+      document.getElementById('permitStatus').value = 'Drafted but not approved';
+      document.getElementById('gasStatus').value = 'Initial test only';
+      document.getElementById('standbyStatus').value = 'Assigned but not briefed';
+      document.getElementById('rescueStatus').value = 'General plan only';
+      document.getElementById('monitoringStatus').value = 'Not confirmed';
+      document.getElementById('extraConcerns').value = 'Hot conditions, limited access, poor communications, uncertain sludge at tank bottom.';
     }
 
-    function startVoiceInput(targetId) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        speechIndicator.textContent = 'Speech recognition is not supported in this browser.';
+    function clearWorkflow() {
+      ['jobTitle','description','location','people','extraConcerns'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('workType').selectedIndex = 0;
+      document.getElementById('permitStatus').selectedIndex = 0;
+      document.getElementById('gasStatus').selectedIndex = 0;
+      document.getElementById('standbyStatus').selectedIndex = 0;
+      document.getElementById('rescueStatus').selectedIndex = 0;
+      document.getElementById('monitoringStatus').selectedIndex = 0;
+    }
+
+    function setList(id, items) {
+      const el = document.getElementById(id);
+      if (!Array.isArray(items) || !items.length) {
+        el.innerHTML = '<li class="muted">No items returned.</li>';
         return;
       }
-
-      if (activeRecognition) {
-        activeRecognition.stop();
-        activeRecognition = null;
-      }
-
-      const recognition = new SpeechRecognition();
-      activeRecognition = recognition;
-      recognition.lang = 'en-GB';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      speechIndicator.textContent = 'Listening…';
-      recognition.start();
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript || '';
-        const target = document.getElementById(targetId);
-        target.value = target.value ? `${target.value.trim()} ${transcript}` : transcript;
-        speechIndicator.textContent = `Captured: ${transcript}`;
-      };
-
-      recognition.onerror = (event) => {
-        speechIndicator.textContent = `Mic error: ${event.error}`;
-      };
-
-      recognition.onend = () => {
-        if (speechIndicator.textContent === 'Listening…') speechIndicator.textContent = 'Voice input ended.';
-        activeRecognition = null;
-      };
-    }
-
-    function buildWorkflowPayload() {
-      return {
-        mode: 'workflow',
-        work_type: getSelectedWorkType(),
-        job_title: document.getElementById('jobTitle').value.trim(),
-        location: document.getElementById('location').value.trim(),
-        people: document.getElementById('people').value.trim(),
-        standby_name: document.getElementById('standbyName').value.trim(),
-        monitoring_method: document.getElementById('monitoringMethod').value.trim(),
-        description: document.getElementById('description').value.trim(),
-        lmra: {
-          what_can_hurt_you: document.getElementById('whatRisk').value.trim(),
-          where_is_the_risk: document.getElementById('whereRisk').value.trim(),
-          what_controls_keep_you_safe: document.getElementById('controlsKnown').value.trim()
-        },
-        permit_checks: {
-          gas_test: document.getElementById('gasTest').value,
-          monitoring: document.getElementById('monitoring').value,
-          rescue_plan: document.getElementById('rescuePlan').value,
-          permit: document.getElementById('permit').value
-        }
-      };
-    }
-
-    async function runWorkflowAssessment() {
-      const payload = buildWorkflowPayload();
-      const resultEl = document.getElementById('workflowResult');
-      resultEl.style.display = 'block';
-      resultEl.classList.add('loading');
-      resultEl.innerHTML = '<div class="banner warning pulse">Arthur is assessing the job…</div>';
-
-      try {
-        const res = await fetch(API_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        renderWorkflowResult(data);
-      } catch (err) {
-        resultEl.innerHTML = '<div class="banner stop">Arthur could not be reached.</div><div class="footnote">Check the backend bridge or arthur-node connection.</div>';
-      } finally {
-        resultEl.classList.remove('loading');
-      }
-    }
-
-    function mapDecisionClass(decision) {
-      const d = (decision || '').toLowerCase();
-      if (d.includes('go')) return 'safe';
-      if (d.includes('stop') || d.includes('no-go') || d.includes('no go')) return 'stop';
-      return 'warning';
-    }
-
-    function asList(items) {
-      const safeItems = Array.isArray(items) ? items : [];
-      return `<ul>${safeItems.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
-    }
-
-    function yn(val) {
-      if (val === true || val === 'yes') return '<span class="tick good">✔</span>';
-      if (val === 'unknown') return '<span class="tick warn">?</span>';
-      return '<span class="tick bad">✖</span>';
-    }
-
-    function renderWorkflowResult(data) {
-      const resultEl = document.getElementById('workflowResult');
-      const bannerClass = mapDecisionClass(data.decision || data.status);
-      resultEl.innerHTML = `
-        <div class="banner ${bannerClass}">${escapeHtml(data.decision || data.status || 'Assessment complete')}</div>
-        <div class="grid-2">
-          <div class="card list-panel">
-            <div class="section-title"><div><h3>Arthur verdict</h3><p>${escapeHtml(data.summary || '')}</p></div></div>
-            ${asList(data.reasons || [])}
-          </div>
-          <div class="card list-panel">
-            <div class="section-title"><div><h3>Safe way forward</h3><p>What must happen next.</p></div></div>
-            ${asList(data.next_actions || [])}
-          </div>
-        </div>
-        <div class="grid-3" style="margin-top:14px;">
-          <div class="card list-panel">
-            <div class="section-title"><div><h3>3W — what can hurt you</h3></div></div>
-            ${asList(data.what_can_hurt_you || [])}
-          </div>
-          <div class="card list-panel">
-            <div class="section-title"><div><h3>3W — where is the risk</h3></div></div>
-            ${asList(data.where_is_the_risk || [])}
-          </div>
-          <div class="card list-panel">
-            <div class="section-title"><div><h3>3W — controls</h3></div></div>
-            ${asList(data.controls || [])}
-          </div>
-        </div>
-        <div class="grid-2" style="margin-top:14px;">
-          <div class="card">
-            <div class="section-title"><div><h3>Critical checks</h3></div></div>
-            <div class="check-row"><span>Gas test</span>${yn(data.checks?.gas_test)}</div>
-            <div class="check-row"><span>Continuous monitoring</span>${yn(data.checks?.monitoring)}</div>
-            <div class="check-row"><span>Rescue plan</span>${yn(data.checks?.rescue_plan)}</div>
-            <div class="check-row"><span>Permit approved</span>${yn(data.checks?.permit)}</div>
-            <div class="check-row"><span>Standby / competence</span>${yn(data.checks?.standby_competent)}</div>
-          </div>
-          <div class="card list-panel">
-            <div class="section-title"><div><h3>Standards alignment</h3><p>Demo explanation layer</p></div></div>
-            ${asList(data.framework_alignment || [])}
-          </div>
-        </div>
-      `;
-
-      const spoken = data.spoken_response || data.summary || data.decision || 'Assessment complete.';
-      if (speechEnabled) speak(spoken);
+      el.innerHTML = items.map(item => `<li>${escapeHtml(item)}</li>`).join('');
     }
 
     function escapeHtml(str) {
-      return String(str ?? '')
+      return String(str)
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
+        .replaceAll("'", '&#039;');
+    }
+
+    function setDecisionBanner(status) {
+      const banner = document.getElementById('decisionBanner');
+      const s = (status || '').toUpperCase();
+
+      banner.classList.remove('safe','caution','no-go');
+
+      if (s === 'SAFE' || s === 'GO') {
+        banner.textContent = 'SAFE / GO';
+        banner.classList.add('safe');
+      } else if (s === 'CAUTION' || s === 'PAUSE') {
+        banner.textContent = 'CAUTION / HOLD';
+        banner.classList.add('caution');
+      } else {
+        banner.textContent = 'NO-GO / STOP WORK';
+        banner.classList.add('no-go');
+      }
+    }
+
+    async function runWorkflow() {
+      showScreen('workflowScreen');
+
+      const message = `
+Job title: ${document.getElementById('jobTitle').value}
+Work type: ${document.getElementById('workType').value}
+Scope: ${document.getElementById('description').value}
+Location: ${document.getElementById('location').value}
+People: ${document.getElementById('people').value}
+Permit status: ${document.getElementById('permitStatus').value}
+Gas testing: ${document.getElementById('gasStatus').value}
+Standby status: ${document.getElementById('standbyStatus').value}
+Rescue arrangements: ${document.getElementById('rescueStatus').value}
+Monitoring: ${document.getElementById('monitoringStatus').value}
+Extra concerns: ${document.getElementById('extraConcerns').value}
+
+Assess this like Safety Guardian using 3W LMRA and strict high-risk work controls.
+`;
+
+      setDecisionBanner('CAUTION');
+      document.getElementById('whyText').textContent = 'Arthur is assessing the task...';
+
+      try {
+        const res = await fetch('/api/guardian', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, mode: 'workflow' })
+        });
+
+        const data = await res.json();
+        let parsed = null;
+
+        try {
+          parsed = JSON.parse(data.response);
+        } catch {
+          parsed = {
+            status: 'NO-GO',
+            what_can_hurt_you: ['Assessment response was not in structured format'],
+            where_is_the_risk: ['Review of the task response is incomplete'],
+            controls: ['Re-check Arthur bridge response', 'Do not proceed until assessment is clear'],
+            improvement: [data.response || 'No structured improvement returned'],
+            why: 'Structured decision output was not available.'
+          };
+        }
+
+        setDecisionBanner(parsed.status);
+        setList('hurtList', parsed.what_can_hurt_you || []);
+        setList('riskList', parsed.where_is_the_risk || []);
+        setList('controlsList', parsed.controls || []);
+        setList('improvementList', Array.isArray(parsed.improvement) ? parsed.improvement : [parsed.improvement || 'No improvement returned']);
+        document.getElementById('whyText').textContent = parsed.why || 'No reasoning returned.';
+      } catch (err) {
+        setDecisionBanner('NO-GO');
+        setList('hurtList', ['Arthur could not complete the assessment']);
+        setList('riskList', ['Assessment path unavailable']);
+        setList('controlsList', ['Do not proceed', 'Verify bridge server', 'Confirm Arthur connectivity']);
+        setList('improvementList', ['Restore the bridge and repeat the assessment']);
+        document.getElementById('whyText').textContent = 'The assessment request failed before a reliable answer was returned.';
+      }
+    }
+
+    function addBubble(type, text) {
+      const feed = document.getElementById('chatFeed');
+      const div = document.createElement('div');
+      div.className = `bubble ${type}`;
+      div.textContent = text;
+      feed.appendChild(div);
+      feed.scrollTop = feed.scrollHeight;
     }
 
     async function sendChat() {
       const input = document.getElementById('chatInput');
-      const message = input.value.trim();
-      if (!message) return;
+      const raw = input.value.trim();
+      if (!raw) return;
+
+      addBubble('user', raw);
       input.value = '';
-      addMessage('user', message);
+
+      const modePrefix =
+        arthurMode === 'strict'
+          ? 'Answer in strict challenge mode. Stop unsafe ideas clearly. '
+          : arthurMode === 'toolbox'
+          ? 'Answer like a toolbox talk to the workforce in simple plain English. '
+          : 'Answer in operational guidance mode. ';
+
+      const message = `${modePrefix}${raw}`;
 
       try {
-        const res = await fetch(API_ENDPOINT, {
+        const res = await fetch('/api/guardian', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode: 'ask', ask_mode: askMode, message })
+          body: JSON.stringify({ message, mode: 'ask' })
         });
+
         const data = await res.json();
-        addMessage('assistant', data.reply || 'Arthur returned no reply.');
+        const answer = data.response || 'Arthur returned no answer.';
+        addBubble('arthur', answer);
+        speakText(answer);
       } catch (err) {
-        addMessage('system', 'Arthur could not be reached. Check the bridge to arthur-node.');
+        addBubble('arthur', 'Arthur could not be reached. Check the bridge and confirm the demo service is running.');
       }
     }
 
-    function sendSuggestion(text) {
-      showScreen('askScreen');
-      document.getElementById('chatInput').value = text;
-      sendChat();
-    }
-
     document.getElementById('chatInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         sendChat();
       }
     });
 
-    pingArthur();
+    window.addEventListener('load', () => {
+      updateArthurStatus();
+      setInterval(updateArthurStatus, 5000);
+    });
   </script>
 </body>
 </html>
